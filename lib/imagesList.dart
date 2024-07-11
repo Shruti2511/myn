@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class ImageListPage extends StatelessWidget {
+class ImageCards extends StatelessWidget {
   final String title;
   final List<String> images;
 
-  ImageListPage({required this.title, required this.images});
+  ImageCards({required this.title, required this.images});
 
   @override
   Widget build(BuildContext context) {

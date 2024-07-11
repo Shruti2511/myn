@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Colors.grey[200], // Light grey background
       ),
-      home: ImageSwipingPage(),
+      home: HomeScreen(),
       debugShowCheckedModeBanner: false, // Remove the debug banner
     );
   }

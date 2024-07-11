@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart'; 
 
-class LikedDislikedPage extends StatelessWidget {
+class LikedScreen extends StatelessWidget {
   final List<String> likedImages;
   final List<String> dislikedImages;
   final int points;
 
-  LikedDislikedPage({
+  LikedScreen({
     required this.likedImages,
     required this.dislikedImages,
     required this.points,
