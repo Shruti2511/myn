@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:hackathon/cart.dart';
-import 'package:hackathon/likedAnimation.dart';
-import 'package:hackathon/likedDisliked.dart';
+import 'package:hackathon/Buyer/myOrders.dart';
+import 'package:hackathon/Buyer/shoppingBag.dart';
+import 'package:hackathon/Buyer/likedAnimation.dart';
+import 'package:hackathon/Buyer/likedPage.dart';
 import 'package:swipe_cards/swipe_cards.dart';
-import 'data.dart'; // Import your data file
+import 'data.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -19,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<String> dislikedImages = [];
   int points = 0;
   bool showHeart = false;
+  bool showBrokenHeart = false;
   String selectedCategory = ''; // Initialize selectedCategory
 
   @override
@@ -47,7 +49,9 @@ class _HomeScreenState extends State<HomeScreen> {
           nopeAction: () {
             dislikedImages.add(item['image']);
             points++;
-            setState(() {});
+            setState(() {
+              showBrokenHeart = true;
+            });
           },
         );
       }).toList();
@@ -63,13 +67,18 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _addToCart(String image) {
+  void _onBrokenHeartAnimationComplete() {
+    setState(() {
+      showBrokenHeart = false;
+    });
+  }
+
+  void _addToBag(String image) {
     cartImages.add(image);
-    setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('Added to cart!'),
+      content: Center(child: Text('Added to bag!')),
       backgroundColor: Color.fromARGB(255, 11, 72, 33),
-      duration: Duration(milliseconds: 300),
+      duration: Duration(milliseconds: 500),
     ));
   }
 
@@ -77,19 +86,16 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text(
-          'Choose your fit!',
-          style: TextStyle(color: Colors.white),
+          'Fashion Rental',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
-        backgroundColor: Colors.grey[850],
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {},
-        ),
+        backgroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: Icon(Icons.favorite, color: Colors.white),
+            icon: Icon(Icons.favorite_border,
+                color: Color.fromARGB(213, 255, 68, 190)),
             onPressed: () {
               Navigator.push(
                 context,
@@ -104,17 +110,35 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           IconButton(
-            icon: Icon(Icons.shopping_cart, color: Colors.white),
+            icon: Icon(Icons.shopping_bag_outlined,
+                color: Color.fromARGB(213, 255, 68, 190)),
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => CartPage(
+                  builder: (context) => ShoppingBag(
                     cartImages: cartImages,
                   ),
                 ),
               );
             },
+          ),
+          PopupMenuButton<String>(
+            icon: Icon(Icons.menu, color: Color.fromARGB(213, 255, 68, 190)),
+            onSelected: (String result) {
+              if (result == 'show_orders') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => OrdersPage()),
+                );
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem<String>(
+                value: 'show_orders',
+                child: Text('Show Orders'),
+              ),
+            ],
           ),
         ],
       ),
@@ -141,17 +165,20 @@ class _HomeScreenState extends State<HomeScreen> {
                             horizontal: 16.0, vertical: 8.0),
                         decoration: BoxDecoration(
                           color: selectedCategory == categories[index]
-                              ? Colors.grey[850]
-                              : Colors.grey[300],
+                              ? Color.fromARGB(213, 255, 68, 190)
+                              : Color.fromARGB(154, 248, 190, 228),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.grey),
+                          border: Border.all(
+                              color: const Color.fromARGB(255, 216, 216, 216)),
                         ),
                         child: Center(
                           child: Text(
                             categories[index],
                             style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
                               color: selectedCategory == categories[index]
-                                  ? Colors.grey[300]
+                                  ? Colors.white
                                   : Colors.grey[850],
                             ),
                           ),
@@ -165,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Center(
                   child: Container(
                     width: MediaQuery.of(context).size.width * 0.9,
-                    padding: EdgeInsets.all(16.0),
+                    padding: EdgeInsets.fromLTRB(4, 10, 4, 10),
                     child: _swipeItems.isEmpty
                         ? Center(
                             child: Text(
@@ -180,7 +207,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 var item = _swipeItems[index].content;
                                 return GestureDetector(
                                   onDoubleTap: () {
-                                    _addToCart(item['image']);
+                                    _addToBag(
+                                      item['image'],
+                                    );
                                     _matchEngine.currentItem?.like();
                                   },
                                   child: SizedBox(
@@ -191,7 +220,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         borderRadius:
                                             BorderRadius.circular(10.0),
                                         side: BorderSide(
-                                            color: Colors.white, width: 2),
+                                            color: Color.fromARGB(
+                                                255, 154, 152, 152),
+                                            width: 2),
                                       ),
                                       child: ClipRRect(
                                         borderRadius:
@@ -220,35 +251,42 @@ class _HomeScreenState extends State<HomeScreen> {
                                                               fontWeight:
                                                                   FontWeight
                                                                       .bold,
-                                                              fontSize: 18)),
-                                                    ),
-                                                    SizedBox(
-                                                      height: 20,
-                                                    ),
-                                                    Center(
-                                                      child: Text(
-                                                          'Price: ${item['price']}',
-                                                          style: TextStyle(
                                                               fontSize: 16)),
                                                     ),
-                                                    Center(
-                                                      child: Text(
-                                                          'Seller: ${item['seller']}',
-                                                          style: TextStyle(
-                                                              fontSize: 14)),
+                                                    SizedBox(
+                                                      height: 10,
                                                     ),
                                                     Center(
                                                       child: Text(
-                                                          'Selected ${item['selectionCount']} times',
+                                                          'Renting Price: ${item['price']}',
                                                           style: TextStyle(
-                                                              fontSize: 14)),
+                                                              fontSize: 15,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold)),
                                                     ),
-                                                    Center(
-                                                      child: Text(
-                                                          'Sizes: ${item['availableSizes'].join(', ')}',
-                                                          style: TextStyle(
-                                                              fontSize: 14)),
+                                                    SizedBox(height: 12),
+                                                    Text(
+                                                      'Seller: ${item['seller']}',
+                                                      style: TextStyle(
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w500),
                                                     ),
+                                                    Text(
+                                                        'Selected ${item['selectionCount']} times',
+                                                        style: TextStyle(
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w500)),
+                                                    Text(
+                                                        'Sizes: ${item['availableSizes'].join(', ')}',
+                                                        style: TextStyle(
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w500)),
                                                     SizedBox(height: 20),
                                                     Center(
                                                       child: Text('Reviews:',
@@ -269,8 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                               children: [
                                                                 RatingBarIndicator(
                                                                   rating: review[
-                                                                          'rating']
-                                                                      .toDouble(),
+                                                                      'rating'].toDouble(),
                                                                   itemBuilder:
                                                                       (context,
                                                                               index) =>
@@ -281,44 +318,54 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                   ),
                                                                   itemCount: 5,
                                                                   itemSize:
-                                                                      20.0,
+                                                                      18.0,
                                                                   direction: Axis
                                                                       .horizontal,
                                                                 ),
                                                                 SizedBox(
-                                                                    width: 8),
+                                                                  width: 8.0,
+                                                                ),
                                                                 Expanded(
                                                                   child: Text(
-                                                                      review['review'] ??
-                                                                          ''),
+                                                                    review[
+                                                                        'text'],
+                                                                    style: TextStyle(
+                                                                        fontSize:
+                                                                            14),
+                                                                  ),
                                                                 ),
                                                               ],
                                                             );
                                                           }).toList(),
-                                                        SizedBox(height: 15),
-                                                        TextField(
-                                                          decoration:
-                                                              InputDecoration(
-                                                            labelText:
-                                                                'Write a review',
-                                                            border:
-                                                                OutlineInputBorder(),
-                                                          ),
-                                                          onSubmitted: (value) {
-                                                            setState(() {
-                                                              if (item[
-                                                                      'reviews'] ==
-                                                                  null) {
-                                                                item['reviews'] =
-                                                                    [];
-                                                              }
-                                                              item['reviews']!
-                                                                  .add({
-                                                                'rating': 5,
-                                                                'review': value
-                                                              });
-                                                            });
-                                                          },
+                                                        SizedBox(height: 10),
+                                                        Row(
+                                                          children: [
+                                                            Expanded(
+                                                              child: TextField(
+                                                                decoration:
+                                                                    InputDecoration(
+                                                                  hintText:
+                                                                      'Add your review...',
+                                                                  border:
+                                                                      OutlineInputBorder(),
+                                                                ),
+                                                                onSubmitted:
+                                                                    (value) {
+                                                                  setState(() {
+                                                                    item['reviews'] ??=
+                                                                        [];
+                                                                    item['reviews']
+                                                                        .add({
+                                                                      'rating':
+                                                                          0.0,
+                                                                      'text':
+                                                                          value,
+                                                                    });
+                                                                  });
+                                                                },
+                                                              ),
+                                                            ),
+                                                          ],
                                                         ),
                                                       ],
                                                     ),
@@ -334,13 +381,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                               },
                               onStackFinished: () {
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(SnackBar(
-                                  content: Text('No more images!'),
-                                ));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content:
+                                        Center(child: Text('No more items!')),
+                                    backgroundColor:
+                                        Color.fromARGB(255, 11, 72, 33),
+                                    duration: Duration(milliseconds: 500),
+                                  ),
+                                );
                               },
-                              upSwipeAllowed: false,
-                              fillSpace: true,
                             );
                           }),
                   ),
@@ -348,15 +398,18 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          if (showHeart)
-            Positioned(
-              top: MediaQuery.of(context).size.height / 2 - 80,
-              right: MediaQuery.of(context).size.width / 2 - 20,
-              child: HeartAnimation(
-                onComplete: _onHeartAnimationComplete,
-                show: true,
-              ),
-            ),
+          IconAnimation(
+            show: showHeart,
+            onComplete: _onHeartAnimationComplete,
+            icon: Icons.favorite,
+            color: Colors.red,
+          ),
+          IconAnimation(
+            show: showBrokenHeart,
+            onComplete: _onBrokenHeartAnimationComplete,
+            icon: Icons.sentiment_dissatisfied_outlined,
+            color: Colors.yellow,
+          ),
         ],
       ),
     );

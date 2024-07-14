@@ -1,30 +1,46 @@
 import 'package:flutter/material.dart';
 
-class HeartAnimation extends StatefulWidget {
+class IconAnimation extends StatefulWidget {
   final bool show;
   final VoidCallback onComplete;
+  final IconData icon;
+  final Color color;
 
-  HeartAnimation({required this.show, required this.onComplete});
+  IconAnimation({
+    required this.show,
+    required this.onComplete,
+    required this.icon,
+    required this.color,
+  });
 
   @override
-  _HeartAnimationState createState() => _HeartAnimationState();
+  _IconAnimationState createState() => _IconAnimationState();
 }
 
-class _HeartAnimationState extends State<HeartAnimation> with SingleTickerProviderStateMixin {
+class _IconAnimationState extends State<IconAnimation> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<Offset> _animation;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: Duration(milliseconds: 300), // Faster transition
+      duration: Duration(milliseconds: 500),
       vsync: this,
     );
 
-    _animation = Tween<Offset>(
+    _slideAnimation = Tween<Offset>(
       begin: Offset(0, 0),
-      end: Offset(0, -1.5),
+      end: Offset(0, -3),
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.5,
+      end: 1.5,
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,
@@ -43,7 +59,7 @@ class _HeartAnimationState extends State<HeartAnimation> with SingleTickerProvid
   }
 
   @override
-  void didUpdateWidget(HeartAnimation oldWidget) {
+  void didUpdateWidget(IconAnimation oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.show) {
       _controller.forward();
@@ -63,11 +79,14 @@ class _HeartAnimationState extends State<HeartAnimation> with SingleTickerProvid
             top: MediaQuery.of(context).size.height / 2 - 24,
             left: MediaQuery.of(context).size.width / 2 - 24,
             child: SlideTransition(
-              position: _animation,
-              child: Icon(
-                Icons.favorite,
-                color: Colors.red,
-                size: 48.0,
+              position: _slideAnimation,
+              child: ScaleTransition(
+                scale: _scaleAnimation,
+                child: Icon(
+                  widget.icon,
+                  color: widget.color,
+                  size: 52.0,
+                ),
               ),
             ),
           )
